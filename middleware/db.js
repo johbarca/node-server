@@ -1,6 +1,5 @@
-var db = {};
 var mysql = require('mysql');
-var pool = mysql.createPool({
+var db = mysql.createPool({
     connectionLimit: 10,
     host: 'localhost',
     user: 'root',
@@ -8,8 +7,14 @@ var pool = mysql.createPool({
     port: '3306',
     database: 'nodejs'
 });
-
-db.query = function (sql, callback) {
+/* db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: 'barca',
+    port: '3306',
+    database: 'nodejs'
+}); */
+/* db.query = function (sql, callback) {
 
     if (!sql) {
         callback();
@@ -24,5 +29,5 @@ db.query = function (sql, callback) {
 
         callback(null, rows, fields);
     });
-}
+} */
 module.exports = db;

@@ -1,29 +1,64 @@
 const router = require('koa-router')()
 const db = require('./db');
+const sqlMap = require('./sqlMap');
 
 router.post('/login', async (ctx, next) => {
-    await next();
+    // await next();
     let name = ctx.request.body.name || '',
         password = ctx.request.body.password || '';
-    console.log(name, password);
-    // console.log(ctx);
+    let sql = sqlMap.user.select_name;
+    let p = new Promise((resolve, reject) => {
+        db.query(sql, [name], function (err, result) {
+            if (password == result[0].password) {
+                data = {
+                    code: 200,
+                    msg: '登录成功'
+                };
+                resolve(data);
+            } else {
+                err = {
+                    msg: '登录失败'
+                };
+                reject(err);
+            }
+        });
+    });
+    /* db.query(sql, [name], function (err, result) {
+        if (password == result[0].password) {
+            data = {
+                code: 200,
+                msg: '登录成功'
+            };
+            ctx.response.body = result;
+        } else {
+            console.log(err)
+        }
+    }); */
+    let datas = await p;
+    ctx.response.body = datas;
+    // ctx.response.body = data;
 })
 router.post('/register', async (ctx, next) => {
     await next();
     let name = ctx.request.body.name || '',
         password = ctx.request.body.password || '';
-        console.log(name, password);
-    let addSqlParams =[name,password]
-    console.log(addSqlParams)
-    var sql = 'insert into user(name,password) values ?';
-    db.query(sql, addSqlParams,function (err, result,fields) {
+    let Params = [name, password];
+    let sql = sqlMap.user.add;
+    db.query(sql, Params, function (err, result, fields) {
         if (result) {
             result = {
                 code: 200,
-                msg: '增加成功'
-              };
+                msg: '注册成功'
+            };
+        } else {
+            console.log(err)
         }
-        console.log(result);
+        // ctx.response.res = result
     });
+    // ctx.response.type = 'text/html';
+    ctx.response.body = {
+        code: 200,
+        msg: '注册成功'
+    };
 })
 module.exports = router
