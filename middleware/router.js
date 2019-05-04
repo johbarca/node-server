@@ -12,7 +12,8 @@ router.post('/login', async (ctx, next) => {
             if (password == result[0].password) {
                 data = {
                     code: 200,
-                    msg: '登录成功'
+                    msg: '登录成功',
+                    result:result
                 };
                 resolve(data);
             } else {
