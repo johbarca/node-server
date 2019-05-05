@@ -20,7 +20,7 @@ router.post('/login', async (ctx, next) => {
                 err = {
                     msg: '登录失败'
                 };
-                reject(err);
+                resolve(err);
             }
         });
     });
