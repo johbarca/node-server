@@ -6,6 +6,7 @@ const app = new Koa();
 
 const router = require('./middleware/router');
 const bodyParser = require('koa-bodyparser');
+
 //使用koa-cors解决跨域请求问题
 const cors = require('koa-cors');
 app.use(cors({
