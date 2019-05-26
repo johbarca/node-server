@@ -11,7 +11,6 @@ module.exports = {
      */
     uploadPhoto : function(req,dirName,callback){
         //上传文件
-        // parse a file upload
         var form = new formidable.IncomingForm();
         form.uploadDir = path.join(__dirname,'../src',dirName);
         //保留文件扩展名
@@ -20,7 +19,6 @@ module.exports = {
 
         form.onPart = function(part) {
             if (part.filename != '') {
-            // let formidable handle all non-file parts 
             form.handlePart(part);
             }
         };
@@ -48,7 +46,7 @@ module.exports = {
             var newName = time + '_' + Math.floor(Math.random()*9999) + extName;    //使用dateFormat+随机数+文件后缀生成新文件名
 
             var oldPath = files.userfile.path;
-            var newPath = path.join(__dirname,'../static',dirName, newName);
+            var newPath = path.join(__dirname,'../src',dirName, newName);
             //修改文件的名字
             fs.renameSync(oldPath,newPath);
             var finalPath = path.join('/',dirName,newName).split('\\').join('/');   //将路径中的'\'替换为'/'
