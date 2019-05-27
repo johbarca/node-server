@@ -1,7 +1,10 @@
 const router = require('koa-router')();
+const koaBody = require('koa-body'); 
 const db = require('./db');
 const sqlMap = require('./sqlMap');
-const upload = require('./upload');
+const fs = require('fs');
+const path = require('path');
+
 
 router.post('/login', async (ctx, next) => {
     // await next();
@@ -63,61 +66,34 @@ router.post('/register', async (ctx, next) => {
         msg: '注册成功'
     };
 });
-router.post('/upload', async (ctx, next) => {
-    if (ctx != "") {
-        ctx.response.body = {
-            code: 200,
-            msg: '成功'
-        };
+router.use(koaBody({
+    multipart: true,
+    formidable: {
+        uploadDir: path.join(__dirname, '../src/img'), // 设置文件上传目录
+        keepExtensions: true,
+        maxFileSize: 2000 * 1024 * 1024 * 1024 // 设置上传文件大小最大限制，默认2M
     }
-    /* form.parse(ctx.req, function(err, fields, files) {
-        console.log(files);
-        console.log(files.thumbnail.path);
-        console.log('文件名:'+files.thumbnail.name);
-        var t = (new Date()).getTime();
-        //生成随机数
-        var ran = parseInt(Math.random() * 8999 +10000);
-        //拿到扩展名
-        var extname = path.extname(files.thumbnail.name);
-
-        //path.normalize('./path//upload/data/../file/./123.jpg'); 规范格式文件名
-        var oldpath =   path.normalize(files.thumbnail.path);
-
-        //新的路径
-        let newfilename=t+ran+extname;
-        var newpath =  './public/images/'+newfilename;
-        console.warn('oldpath:'+oldpath+' newpath:'+newpath);
-        fs.rename(oldpath,newpath,function(err){
-            if(err){
-                console.error("改名失败"+err);
-            }
-            res.render('index', { title: '文件上传成功:', imginfo: newfilename });
-        });
-
-
-        //res.end(util.inspect({fields: fields, files: files}));
-    }); */
-    upload.uploadPhoto(ctx.req,'img',function(err,fields,uploadPath){
-        if(err){
-            return res.json({
-                errCode : 0,
-                errMsg : '上传图片错误'
-            });
+}))
+router.post('/upload', async (ctx, next) => {
+    const file = ctx.request.files.file; // 上传的文件在ctx.request.files.file
+    console.log(file)
+    // 创建可读流
+    const reader = fs.createReadStream(file.path);
+    // 修改文件的名称
+    var myDate = new Date();
+    var newFilename = myDate.getTime() + '.' + file.name.split('.')[1];
+    /* var targetPath = path.join(__dirname, '../src/img') + `/${newFilename}`;
+    //创建可写流
+    const upStream = fs.createWriteStream(targetPath);
+    // 可读流通过管道写入可写流
+    reader.pipe(upStream); */
+    //返回保存的路径
+    return ctx.response.body = {
+        code: 200,
+        data: {
+            url: 'http://' + ctx.headers.host + '/uploads/' + newFilename
         }
-        console.log(fields);    //表单中字段信息
-        console.log(uploadPath);    //上传图片的相对路径
-        res.json({
-            errCode : 1,
-            errMsg : '上传成功',
-            fields :  fields,
-            uploadPath : uploadPath
-        });
-        return ctx.body = {
-            url: remotefilePath,
-            message: "文件上传成功",
-            cc: 0
-        } 
-    });
+    };
     
 });
 

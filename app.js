@@ -3,12 +3,10 @@ const Koa = require('koa');
 
 // 创建一个Koa对象表示web app本身:
 const app = new Koa();
-
 const router = require('./middleware/router');
-const bodyParser = require('koa-bodyparser');
+const koaBody = require('koa-body'); //解析上传文件的插件
+const cors = require('koa-cors'); //使用koa-cors解决跨域请求问题
 
-//使用koa-cors解决跨域请求问题
-const cors = require('koa-cors');
 app.use(cors({
     origin: function (ctx) {
         return "*";
@@ -21,8 +19,9 @@ app.use(cors({
     allowHeaders: ['Content-Type', 'Authorization', 'Accept'],
 }));
 //使用koa-bodyparser处理body读取问题
-app.use(bodyParser());
+app.use(koaBody());
 app.use(router.routes());
+
 // 在端口3000监听:
 app.listen(3000);
 console.log('app started at port 3000...');
