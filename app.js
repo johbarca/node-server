@@ -6,6 +6,8 @@ const app = new Koa();
 const router = require('./middleware/router');
 const koaBody = require('koa-body'); //解析上传文件的插件
 const cors = require('koa-cors'); //使用koa-cors解决跨域请求问题
+const staticFiles = require('koa-static');
+const path = require('path');
 
 app.use(cors({
     origin: function (ctx) {
@@ -18,7 +20,8 @@ app.use(cors({
     allowMethods: ['GET', 'POST', 'DELETE'], //设置允许的HTTP请求类型
     allowHeaders: ['Content-Type', 'Authorization', 'Accept'],
 }));
-//使用koa-bodyparser处理body读取问题
+// app.use(staticFiles(path.join(__dirname,"/public")))
+app.use(staticFiles(__dirname+"/public"))
 app.use(koaBody());
 app.use(router.routes());
 

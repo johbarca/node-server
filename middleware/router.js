@@ -1,10 +1,10 @@
 const router = require('koa-router')();
-const koaBody = require('koa-body'); 
+const koaBody = require('koa-body');
 const db = require('./db');
 const sqlMap = require('./sqlMap');
 const fs = require('fs');
 const path = require('path');
-
+var dateFormat = require('dateformat');
 
 router.post('/login', async (ctx, next) => {
     // await next();
@@ -44,9 +44,9 @@ router.post('/login', async (ctx, next) => {
     // ctx.response.body = data;
 });
 router.post('/register', async (ctx, next) => {
-    await next();
-    let name = ctx.request.body.name || '',
-        password = ctx.request.body.password || '';
+    // await next();
+    let name = ctx.request.body.name,
+        password = ctx.request.body.password;
     let Params = [name, password];
     let sql = sqlMap.user.add;
     db.query(sql, Params, function (err, result, fields) {
@@ -66,35 +66,94 @@ router.post('/register', async (ctx, next) => {
         msg: '注册成功'
     };
 });
+router.post('/getFiles', async (ctx, next) => {
+    let userName = ctx.request.body.userName;
+    let sql = sqlMap.file.getFile;
+    let Params = [userName];
+    let result = await new Promise((resolve, reject) => {
+        db.query(sql, Params, function (err, result, fields) {
+            if (result) {
+                data = {
+                    code: 200,
+                    msg: '获取文件成功',
+                    fileLists: result
+                };
+                resolve(data);
+            } else {
+                err = {
+                    msg: '获取文件失败'
+                };
+                resolve(err);
+            }
+        });
+    })
+    ctx.body = result;
+});
+router.post('/download', async (ctx, next) => {
+    const filename = ctx.request.body.filename;
+    let file = path.join(__dirname, '../public/img/') + filename;
+    console.log(filename);
+    let readStream = fs.createReadStream(file); //得到文件输入流
+    readStream.on('data', (chunk) => {
+        ctx.response.body.write(chunk, 'binary'); //文档内容以二进制的格式写到response的输出流
+    });
+    readStream.on('end', () => {
+        ctx.response.body.end();
+    })
+});
 router.use(koaBody({
     multipart: true,
     formidable: {
-        uploadDir: path.join(__dirname, '../src/img'), // 设置文件上传目录
+        uploadDir: path.join(__dirname, '../public/img'), // 设置文件上传目录
         keepExtensions: true,
-        maxFileSize: 2000 * 1024 * 1024 * 1024 // 设置上传文件大小最大限制，默认2M
+        maxFileSize: 2000 * 1024 * 1024 * 1024 // 设置上传文件大小最大限制，默认2M，这里设为2G
     }
-}))
+}));
 router.post('/upload', async (ctx, next) => {
     const file = ctx.request.files.file; // 上传的文件在ctx.request.files.file
-    console.log(file)
-    // 创建可读流
-    const reader = fs.createReadStream(file.path);
     // 修改文件的名称
-    var myDate = new Date();
-    var newFilename = myDate.getTime() + '.' + file.name.split('.')[1];
-    /* var targetPath = path.join(__dirname, '../src/img') + `/${newFilename}`;
-    //创建可写流
-    const upStream = fs.createWriteStream(targetPath);
+    let userName = ctx.request.body.userName;
+    let time = dateFormat(new Date(), "yyyymmddHHMMss");
+    let extName = path.extname(file.path);
+    let newName = time + '_' + Math.floor(Math.random() * 9999) + extName;
+    let oldPath = file.path;
+    let newPath = path.join(__dirname, '../public/img', newName);
+    fs.renameSync(oldPath, newPath);
+    let filePath = 'http://localhost:3000/img/' + newName;
+    // let url = 'http://localhost:3000/download/' + newName;
+    let sql = sqlMap.file.add;
+    let Params = [userName, newName, filePath]
+    let result = await new Promise((resolve, reject) => {
+        db.query(sql, Params, function (err, result, fields) {
+            if (result) {
+                data = {
+                    code: 200,
+                    msg: '上传成功'
+                };
+                resolve(data);
+            } else {
+                err = {
+                    msg: '上传文件失败'
+                };
+                resolve(err);
+            }
+        });
+    });
+    ctx.response.body = result;
+    /* var finalPath = path.join('/',dirName,newName).split('\\').join('/'); 
+    // 创建可读流
+    //const reader = fs.createReadStream(file.path);
+    // 创建可写流
+    const upStream = fs.createWriteStream(newPath);
     // 可读流通过管道写入可写流
     reader.pipe(upStream); */
-    //返回保存的路径
     return ctx.response.body = {
         code: 200,
         data: {
-            url: 'http://' + ctx.headers.host + '/uploads/' + newFilename
+            url: 'http://' + ctx.headers.host + '/uploads/' + newName
         }
     };
-    
+
 });
 
 module.exports = router
