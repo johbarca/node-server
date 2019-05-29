@@ -39,9 +39,8 @@ router.post('/login', async (ctx, next) => {
             console.log(err)
         }
     }); */
-    let datas = await p;
-    ctx.response.body = datas;
-    // ctx.response.body = data;
+    let data = await p;
+    ctx.response.body = data;
 });
 router.post('/register', async (ctx, next) => {
     // await next();
