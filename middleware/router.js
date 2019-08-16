@@ -8,10 +8,10 @@ var dateFormat = require('dateformat');
 
 router.post('/login', async (ctx, next) => {
     // await next();
-    let name = ctx.request.body.name || '',
-        password = ctx.request.body.password || '';
+    let name = ctx.request.body.name,
+        password = ctx.request.body.password;
     let sql = sqlMap.user.select_name;
-    let p = new Promise((resolve, reject) => {
+    let result = await new Promise((resolve, reject) => {
         db.query(sql, [name], function (err, result) {
             if (password == result[0].password) {
                 data = {
@@ -39,8 +39,8 @@ router.post('/login', async (ctx, next) => {
             console.log(err)
         }
     }); */
-    let data = await p;
-    ctx.response.body = data;
+    ctx.session.user = name;
+    ctx.response.body = result;
 });
 router.post('/register', async (ctx, next) => {
     // await next();
@@ -66,6 +66,9 @@ router.post('/register', async (ctx, next) => {
     };
 });
 router.post('/getFiles', async (ctx, next) => {
+    if (!ctx.session.user) {
+        ctx.response.redirect('/login');
+    }
     let userName = ctx.request.body.userName;
     let sql = sqlMap.file.getFile;
     let Params = [userName];
