@@ -1,3 +1,10 @@
+/*
+ * @Author: liulicheng
+ * @Github: https://github.com/johbarca
+ * @Date: 2019-05-29 11:08:05
+ * @LastEditors: liulicheng
+ * @LastEditTime: 2019-08-16 17:39:45
+ */
 const router = require('koa-router')();
 const koaBody = require('koa-body');
 const db = require('./db');
@@ -103,6 +110,28 @@ router.post('/download', async (ctx, next) => {
         ctx.response.body.end();
     })
 });
+router.post('/getinfo', async (ctx, next) => {
+    let sql = sqlMap.live_info.getLiveInfo;
+    let result = await new Promise((resolve, reject) => {
+        db.query(sql, function (err, result, fields) {
+            if (result) {
+                data = {
+                    code: 200,
+                    msg: '获取直播间成功',
+                    liveLists: result
+                };
+                resolve(data);
+            } else {
+                err = {
+                    msg: '获取直播间失败'
+                };
+                resolve(err);
+            }
+        });
+    });
+    ctx.body = result;
+});
+
 router.use(koaBody({
     multipart: true,
     formidable: {
@@ -155,7 +184,7 @@ router.post('/upload', async (ctx, next) => {
             url: 'http://' + ctx.headers.host + '/uploads/' + newName
         }
     };
-
 });
+
 
 module.exports = router
